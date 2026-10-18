@@ -101,7 +101,7 @@ ul.plain { margin: 0; padding-left: 20px; } ul.plain li { margin: 4px 0; }
     <h2>1. Access</h2>
     <label for="apiKey">ELS_APIKey</label>
     <div class="row">
-      <input class="grow" type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="API key from dev.elsevier.com">
+      <input class="grow" type="password" id="apiKey" name="els-apikey" autocomplete="new-password" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-bwignore placeholder="API key from dev.elsevier.com">
       <button type="button" id="toggleKey" class="small">Show</button>
     </div>
     <label class="inline"><input type="checkbox" id="rememberKey"> Remember API key in this browser (localStorage)</label>
@@ -249,7 +249,7 @@ const safeName = (s) => s.replace(/[\/\\:*?"<>|\s]+/g, '_').replace(/_+/g, '_').
 
 // ---------- API key ----------
 const savedKey = store.get(KEY_STORE);
-if (savedKey) { $('apiKey').value = savedKey; $('rememberKey').checked = true; }
+if (savedKey && /^[A-Za-z0-9]+$/.test(savedKey)) { $('apiKey').value = savedKey; $('rememberKey').checked = true; }
 $('toggleKey').addEventListener('click', () => {
   const f = $('apiKey'); const show = f.type === 'password';
   f.type = show ? 'text' : 'password'; $('toggleKey').textContent = show ? 'Hide' : 'Show';
@@ -516,6 +516,10 @@ async function run() {
   state.apiKey = $('apiKey').value.trim();
   state.view = $('view').value;
   if (!state.apiKey) { alert('Please enter your ELS_APIKey first.'); $('apiKey').focus(); return; }
+  if (!/^[A-Za-z0-9]+$/.test(state.apiKey)) {
+    alert('The API key field contains something that is not an API key (perhaps filled in by your browser\'s password manager). Please clear the field and enter your ELS_APIKey.');
+    $('apiKey').type = 'text'; $('toggleKey').textContent = 'Hide'; $('apiKey').focus(); return;
+  }
   if (!items.length) { alert('Please enter at least one DOI or PII.'); $('ids').focus(); return; }
   persistKey();
   const opts = { header: $('optHeader').checked, captions: $('optCaptions').checked, refs: $('optRefs').checked };
